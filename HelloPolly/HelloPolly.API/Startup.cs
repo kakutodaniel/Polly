@@ -42,7 +42,7 @@ namespace HelloPolly.API
                 .WaitAndRetryAsync(2, retryAttempt => TimeSpan.FromMilliseconds(2), (ex, timespan, context) =>
                 {
                     dynamic ctx = JsonConvert.DeserializeObject(context["data"].ToString());
-                    var desc = ctx.Description;
+                    string desc = ctx.Description;
                     
                     Console.WriteLine($"Wait and Retry: {context.PolicyKey} at {context.OperationKey}");
                 });
