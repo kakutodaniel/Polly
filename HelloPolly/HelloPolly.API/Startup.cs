@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Polly;
 using Polly.Registry;
 using Polly.Timeout;
@@ -40,6 +41,9 @@ namespace HelloPolly.API
                 //.Or<TimeoutException>()
                 .WaitAndRetryAsync(2, retryAttempt => TimeSpan.FromMilliseconds(2), (ex, timespan, context) =>
                 {
+                    dynamic ctx = JsonConvert.DeserializeObject(context["data"].ToString());
+                    var desc = ctx.Description;
+                    
                     Console.WriteLine($"Wait and Retry: {context.PolicyKey} at {context.OperationKey}");
                 });
 

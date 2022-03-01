@@ -1,6 +1,8 @@
-﻿using Polly;
+﻿using Newtonsoft.Json;
+using Polly;
 using Polly.Registry;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,13 +35,23 @@ namespace HelloPolly.API
                             return Task.FromResult(x.Result);
                         });
 
+            // send some context to polly
+            var dataContext = new DataContext { Id = Guid.NewGuid(), Description = "Test" };
+            var context = new Context
+            {
+                { "data", JsonConvert.SerializeObject(dataContext) }
+            };
+
             // TimeoutStrategy.Optimistic (default)
             return await fallback.WrapAsync(_registry.Get<IAsyncPolicy>("defaultPolicy"))
-                                .ExecuteAsync(async ct => await _repository.GetData(ct), CancellationToken.None);
+                                .ExecuteAsync(async (ctx, ct) => await _repository.GetData(ct), context, CancellationToken.None);
 
-            // TimeoutStrategy.Pessimistic
             //return await fallback.WrapAsync(_registry.Get<IAsyncPolicy>("defaultPolicy"))
-            //                    .ExecuteAsync(async () => await _repository.GetData());
+            //                    .ExecuteAsync(async ct => await _repository.GetData(ct), CancellationToken.None);
+
+                                // TimeoutStrategy.Pessimistic
+                                //return await fallback.WrapAsync(_registry.Get<IAsyncPolicy>("defaultPolicy"))
+                                //                    .ExecuteAsync(async () => await _repository.GetData());
         }
     }
 }
